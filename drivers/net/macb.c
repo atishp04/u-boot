@@ -107,6 +107,7 @@ struct macb_device {
 	unsigned int		tx_tail;
 	unsigned int		next_rx_tail;
 	bool			wrapped;
+	bool			is_sifive_macb;
 
 	void			*rx_buffer;
 	void			*tx_buffer;
@@ -498,17 +499,10 @@ static int macb_phy_find(struct macb_device *macb, const char *name)
 int __weak macb_linkspd_cb(struct udevice *dev, unsigned int speed)
 {
 #ifdef CONFIG_CLK
+	struct macb_device *macb = dev_get_priv(dev);
 	struct clk tx_clk;
 	ulong rate;
 	int ret;
-
-	/*
-	 * "tx_clk" is an optional clock source for MACB.
-	 * Ignore if it does not exist in DT.
-	 */
-	ret = clk_get_by_name(dev, "tx_clk", &tx_clk);
-	if (ret)
-		return 0;
 
 	switch (speed) {
 	case _10BASET:
@@ -525,10 +519,29 @@ int __weak macb_linkspd_cb(struct udevice *dev, unsigned int speed)
 		return 0;
 	}
 
-	if (tx_clk.dev) {
-		ret = clk_set_rate(&tx_clk, rate);
+	if (macb->is_sifive_macb) {
+		/*
+		 * GEMGXL TX clock operation mode:
+		 *
+		 * 0 = GMII mode. Use 125 MHz gemgxlclk from PRCI in TX logic
+		 *     and output clock on GMII output signal GTX_CLK
+		 * 1 = MII mode. Use MII input signal TX_CLK in TX logic
+		 */
+		macb_writel(macb, SIFIVE_TX_CLK_SEL, rate != 125000000);
+	} else {
+		/*
+		 * "tx_clk" is an optional clock source for MACB.
+		 * Ignore if it does not exist in DT.
+		 */
+		ret = clk_get_by_name(dev, "tx_clk", &tx_clk);
 		if (ret)
-			return ret;
+			return 0;
+
+		if (tx_clk.dev) {
+			ret = clk_set_rate(&tx_clk, rate);
+			if (ret)
+				return ret;
+		}
 	}
 #endif
 
@@ -1147,6 +1160,8 @@ static int macb_eth_probe(struct udevice *dev)
 	const char *phy_mode;
 	__maybe_unused int ret;
 
+	macb->is_sifive_macb = device_is_compatible(dev, "sifive,fu540-macb");
+
 	phy_mode = fdt_getprop(gd->fdt_blob, dev_of_offset(dev), "phy-mode",
 			       NULL);
 	if (phy_mode)
@@ -1225,6 +1240,7 @@ static const struct udevice_id macb_eth_ids[] = {
 	{ .compatible = "atmel,sama5d3-gem" },
 	{ .compatible = "atmel,sama5d4-gem" },
 	{ .compatible = "cdns,zynq-gem" },
+	{ .compatible = "sifive,fu540-macb" },
 	{ }
 };
 

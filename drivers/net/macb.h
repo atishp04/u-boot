@@ -57,6 +57,7 @@
 #define MACB_USRIO				0x00c0
 #define MACB_WOL				0x00c4
 #define MACB_MID				0x00fc
+#define MACB_SIFIVE_TX_CLK_SEL			0x10000
 
 /* GEM specific register offsets */
 #define GEM_DCFG1				0x0280
