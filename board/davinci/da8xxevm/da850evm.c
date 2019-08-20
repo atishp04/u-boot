@@ -10,7 +10,7 @@
 
 #include <common.h>
 #include <dm.h>
-#include <environment.h>
+#include <env.h>
 #include <i2c.h>
 #include <net.h>
 #include <spi.h>
@@ -234,7 +234,8 @@ const struct pinmux_resource pinmuxes[] = {
 	PINMUX_ITEM(emifa_pins_cs3),
 	PINMUX_ITEM(emifa_pins_cs4),
 	PINMUX_ITEM(emifa_pins_nand),
-#elif defined(CONFIG_USE_NOR)
+#endif
+#ifdef CONFIG_USE_NOR
 	PINMUX_ITEM(emifa_pins_cs2),
 	PINMUX_ITEM(emifa_pins_nor),
 #endif

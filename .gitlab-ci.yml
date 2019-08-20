@@ -2,7 +2,7 @@
 
 # Grab our configured image.  The source for this is found at:
 # https://gitlab.denx.de/u-boot/gitlab-ci-runner
-image: trini/u-boot-gitlab-ci-runner:xenial-20190720-29Jul2019
+image: trini/u-boot-gitlab-ci-runner:xenial-20190720-02Aug2019
 
 # We run some tests in different order, to catch some failures quicker.
 stages:
@@ -145,34 +145,24 @@ Build tools-only:
   script:
     - make tools-only_config tools-only -j$(nproc)
 
-# Run various tool tests
-Run patman testsuite:
+Run binman, buildman, dtoc and patman testsuites:
   tags: [ 'all' ]
   stage: testsuites
   script:
-    - git config --global user.name "GitLab CI Runner"
-    - git config --global user.email trini@konsulko.com
-    - ./tools/patman/patman --test
-
-Run buildman testsuite:
-  tags: [ 'all' ]
-  stage: testsuites
-  script:
-    - ./tools/buildman/buildman -t
-
-Run binman and dtoc testsuite:
-  tags: [ 'all' ]
-  stage: testsuites
-  script:
-    - virtualenv /tmp/venv
-    - . /tmp/venv/bin/activate
-    - pip install pyelftools
-    - export UBOOT_TRAVIS_BUILD_DIR=`cd .. && pwd`/.bm-work/sandbox_spl;
-      ./tools/buildman/buildman -P sandbox_spl && 
-     export PYTHONPATH="${UBOOT_TRAVIS_BUILD_DIR}/scripts/dtc/pylibfdt";
-     export PATH="${UBOOT_TRAVIS_BUILD_DIR}/scripts/dtc:${PATH}";
-     ./tools/binman/binman --toolpath ${UBOOT_TRAVIS_BUILD_DIR}/tools test &&
-     ./tools/dtoc/dtoc -t
+    - git config --global user.name "GitLab CI Runner";
+      git config --global user.email trini@konsulko.com;
+      export USER=gitlab;
+      virtualenv /tmp/venv;
+      . /tmp/venv/bin/activate;
+      pip install pyelftools;
+      export UBOOT_TRAVIS_BUILD_DIR=`cd .. && pwd`/.bm-work/sandbox_spl;
+      export PYTHONPATH="${UBOOT_TRAVIS_BUILD_DIR}/scripts/dtc/pylibfdt";
+      export PATH="${UBOOT_TRAVIS_BUILD_DIR}/scripts/dtc:${PATH}";
+      ./tools/buildman/buildman -P sandbox_spl;
+      ./tools/binman/binman --toolpath ${UBOOT_TRAVIS_BUILD_DIR}/tools test;
+      ./tools/buildman/buildman -t;
+      ./tools/dtoc/dtoc -t;
+      ./tools/patman/patman --test
 
 # Test sandbox with test.py
 sandbox test.py:
@@ -252,7 +242,6 @@ qemu_mips test.py:
     TEST_PY_BD: "qemu_mips"
     TEST_PY_TEST_SPEC: "not sleep"
     BUILDMAN: "^qemu_mips$"
-    TOOLCHAIN: "mips"
   <<: *buildman_and_testpy_dfn
 
 qemu_mipsel test.py:
@@ -261,7 +250,6 @@ qemu_mipsel test.py:
     TEST_PY_BD: "qemu_mipsel"
     TEST_PY_TEST_SPEC: "not sleep"
     BUILDMAN: "^qemu_mipsel$"
-    TOOLCHAIN: "mips"
   <<: *buildman_and_testpy_dfn
 
 qemu_mips64 test.py:
@@ -270,7 +258,6 @@ qemu_mips64 test.py:
     TEST_PY_BD: "qemu_mips64"
     TEST_PY_TEST_SPEC: "not sleep"
     BUILDMAN: "^qemu_mips64$"
-    TOOLCHAIN: "mips"
   <<: *buildman_and_testpy_dfn
 
 qemu_mips64el test.py:
@@ -279,7 +266,6 @@ qemu_mips64el test.py:
     TEST_PY_BD: "qemu_mips64el"
     TEST_PY_TEST_SPEC: "not sleep"
     BUILDMAN: "^qemu_mips64el$"
-    TOOLCHAIN: "mips"
   <<: *buildman_and_testpy_dfn
 
 qemu-ppce500 test.py:
@@ -288,7 +274,14 @@ qemu-ppce500 test.py:
     TEST_PY_BD: "qemu-ppce500"
     TEST_PY_TEST_SPEC: "not sleep"
     BUILDMAN: "^qemu-ppce500$"
-    TOOLCHAIN: "powerpc"
+  <<: *buildman_and_testpy_dfn
+
+qemu-riscv64 test.py:
+  tags: [ 'all' ]
+  variables:
+    TEST_PY_BD: "qemu-riscv64"
+    TEST_PY_TEST_SPEC: "not sleep"
+    BUILDMAN: "^qemu-riscv64$"
   <<: *buildman_and_testpy_dfn
 
 qemu-x86 test.py:
@@ -297,7 +290,6 @@ qemu-x86 test.py:
     TEST_PY_BD: "qemu-x86"
     TEST_PY_TEST_SPEC: "not sleep"
     BUILDMAN: "^qemu-x86$"
-    TOOLCHAIN: "i386"
   <<: *buildman_and_testpy_dfn
 
 qemu-x86_64 test.py:
@@ -306,7 +298,6 @@ qemu-x86_64 test.py:
     TEST_PY_BD: "qemu-x86_64"
     TEST_PY_TEST_SPEC: "not sleep"
     BUILDMAN: "^qemu-x86_64$"
-    TOOLCHAIN: "i386"
   <<: *buildman_and_testpy_dfn
 
 zynq_zc702 test.py:
@@ -334,5 +325,4 @@ xtfpga test.py:
     TEST_PY_TEST_SPEC: "not sleep"
     TEST_PY_ID: "--id qemu"
     BUILDMAN: "^xtfpga$"
-    TOOLCHAIN: "xtensa-dc233c-elf"
   <<: *buildman_and_testpy_dfn

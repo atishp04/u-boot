@@ -4,6 +4,8 @@
  * SPDX-License-Identifier:     GPL-2.0+
  */
 
+#include "rk3328-sdram-lpddr3-1600.dtsi"
+
 / {
 	aliases {
 		mmc0 = &emmc;
@@ -25,10 +27,8 @@
 
 &emmc {
 	u-boot,dm-pre-reloc;
-	fifo-mode;
 };
 
 &sdmmc {
 	u-boot,dm-pre-reloc;
-	fifo-mode;
 };

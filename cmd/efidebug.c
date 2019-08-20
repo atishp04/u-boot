@@ -9,7 +9,6 @@
 #include <common.h>
 #include <command.h>
 #include <efi_loader.h>
-#include <environment.h>
 #include <exports.h>
 #include <hexdump.h>
 #include <malloc.h>
@@ -729,7 +728,8 @@ static int u16_tohex(u16 c)
  *
  * Implement efidebug "boot dump" sub-command.
  * Dump information of all UEFI load options defined.
- *   - boot dump
+ *
+ *     efidebug boot dump
  */
 static int do_efi_boot_dump(cmd_tbl_t *cmdtp, int flag,
 			    int argc, char * const argv[])
@@ -1013,7 +1013,6 @@ static cmd_tbl_t cmd_efidebug_boot_sub[] = {
  *		CMD_RET_USAGE or CMD_RET_RET_FAILURE on failure
  *
  * Implement efidebug "boot" sub-command.
- * See above for details of sub-commands.
  */
 static int do_efi_boot_opt(cmd_tbl_t *cmdtp, int flag,
 			   int argc, char * const argv[])
@@ -1059,7 +1058,6 @@ static cmd_tbl_t cmd_efidebug_sub[] = {
  *
  * Implement efidebug command which allows us to display and
  * configure UEFI environment.
- * See above for details of sub-commands.
  */
 static int do_efidebug(cmd_tbl_t *cmdtp, int flag,
 		       int argc, char * const argv[])

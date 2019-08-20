@@ -285,6 +285,9 @@ int clk_set_defaults(struct udevice *dev)
 {
 	int ret;
 
+	if (!dev_of_valid(dev))
+		return 0;
+
 	/* If this not in SPL and pre-reloc state, don't take any action. */
 	if (!(IS_ENABLED(CONFIG_SPL_BUILD) || (gd->flags & GD_FLG_RELOC)))
 		return 0;
@@ -513,6 +516,19 @@ int clk_get_by_id(ulong id, struct clk **clkp)
 	}
 
 	return -ENOENT;
+}
+
+bool clk_is_match(const struct clk *p, const struct clk *q)
+{
+	/* trivial case: identical struct clk's or both NULL */
+	if (p == q)
+		return true;
+
+	/* same device, id and data */
+	if (p->dev == q->dev && p->id == q->id && p->data == q->data)
+		return true;
+
+	return false;
 }
 
 UCLASS_DRIVER(clk) = {
