@@ -329,6 +329,12 @@ config SYS_CACHELINE_SIZE
 	default 64 if SYS_CACHE_SHIFT_6
 	default 32 if SYS_CACHE_SHIFT_5
 
+config ARCH_CPU_INIT
+	bool "Enable ARCH_CPU_INIT"
+	help
+	  Some architectures require a call to arch_cpu_init()
+	  Say Y here to enable it
+
 config SYS_ARCH_TIMER
 	bool "ARM Generic Timer support"
 	depends on CPU_V7A || ARM64
@@ -367,7 +373,7 @@ config SYS_THUMB_BUILD
 config SPL_SYS_THUMB_BUILD
 	bool "Build SPL using the Thumb instruction set"
 	default y if SYS_THUMB_BUILD
-	depends on !ARM64
+	depends on !ARM64 && SPL
 	help
 	   Use this flag to build SPL using the Thumb instruction set for
 	   ARM architectures. Thumb instruction set provides better code
@@ -414,7 +420,7 @@ config USE_ARCH_MEMCPY
 config SPL_USE_ARCH_MEMCPY
 	bool "Use an assembly optimized implementation of memcpy for SPL"
 	default y if USE_ARCH_MEMCPY
-	depends on !ARM64
+	depends on !ARM64 && SPL
 	help
 	  Enable the generation of an optimized version of memcpy.
 	  Such implementation may be faster under some conditions
@@ -423,7 +429,7 @@ config SPL_USE_ARCH_MEMCPY
 config TPL_USE_ARCH_MEMCPY
 	bool "Use an assembly optimized implementation of memcpy for TPL"
 	default y if USE_ARCH_MEMCPY
-	depends on !ARM64
+	depends on !ARM64 && TPL
 	help
 	  Enable the generation of an optimized version of memcpy.
 	  Such implementation may be faster under some conditions
@@ -441,7 +447,7 @@ config USE_ARCH_MEMSET
 config SPL_USE_ARCH_MEMSET
 	bool "Use an assembly optimized implementation of memset for SPL"
 	default y if USE_ARCH_MEMSET
-	depends on !ARM64
+	depends on !ARM64 && SPL
 	help
 	  Enable the generation of an optimized version of memset.
 	  Such implementation may be faster under some conditions
@@ -450,7 +456,7 @@ config SPL_USE_ARCH_MEMSET
 config TPL_USE_ARCH_MEMSET
 	bool "Use an assembly optimized implementation of memset for TPL"
 	default y if USE_ARCH_MEMSET
-	depends on !ARM64
+	depends on !ARM64 && TPL
 	help
 	  Enable the generation of an optimized version of memset.
 	  Such implementation may be faster under some conditions
@@ -458,7 +464,8 @@ config TPL_USE_ARCH_MEMSET
 
 config ARM64_SUPPORT_AARCH32
 	bool "ARM64 system support AArch32 execution state"
-	default y if ARM64 && !TARGET_THUNDERX_88XX
+	depends on ARM64
+	default y if !TARGET_THUNDERX_88XX
 	help
 	  This ARM64 system supports AArch32 execution state.
 
@@ -1093,6 +1100,7 @@ config TARGET_LS2080A_SIMU
 	select ARCH_MISC_INIT
 	select ARM64
 	select ARMV8_MULTIENTRY
+	select BOARD_LATE_INIT
 	help
 	  Support for Freescale LS2080A_SIMU platform
 	  The LS2080A Development System (QDS) is a pre silicon
@@ -1306,6 +1314,8 @@ config TARGET_LS1028AQDS
 	select ARM64
 	select ARMV8_MULTIENTRY
 	select ARCH_SUPPORT_TFABOOT
+	select BOARD_LATE_INIT
+	select ARCH_MISC_INIT
 	help
 	  Support for Freescale LS1028AQDS platform
 	  The LS1028A Development System (QDS) is a high-performance

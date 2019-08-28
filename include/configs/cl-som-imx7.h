@@ -147,7 +147,6 @@
 #define CONFIG_ENV_SECT_SIZE		(64 * 1024)
 
 /* MMC Config*/
-#define CONFIG_FSL_USDHC
 #ifdef CONFIG_FSL_USDHC
 #define CONFIG_SYS_FSL_ESDHC_ADDR       USDHC1_BASE_ADDR
 
@@ -166,8 +165,5 @@
 
 /* SPL */
 #include "imx7_spl.h"
-#ifdef CONFIG_SPL_BUILD
-#define CONFIG_SYS_SPI_U_BOOT_OFFS	(64 * 1024)
-#endif /* CONFIG_SPL_BUILD */
 
 #endif	/* __CONFIG_H */

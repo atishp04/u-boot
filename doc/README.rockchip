@@ -28,10 +28,9 @@ You will need:
 Building
 ========
 
-At present 12 RK3288 boards are supported:
+At present 11 RK3288 boards are supported:
 
    - EVB RK3288 - use evb-rk3288 configuration
-   - Fennec RK3288 - use fennec-rk3288 configuration
    - Firefly RK3288 - use firefly-rk3288 configuration
    - Hisense Chromebook - use chromebook_jerry configuration
    - Asus C100P Chromebook - use chromebook_minnie configuration
@@ -560,7 +559,7 @@ header and skipping every second 2KB block. Then the U-Boot image is written at
 offset 128KB and the whole image is padded to 4MB which is the SPI flash size.
 The position of U-Boot is controlled with this setting in U-Boot:
 
-   #define CONFIG_SYS_SPI_U_BOOT_OFFS	(128 << 10)
+   #define CONFIG_SYS_SPI_U_BOOT_OFFS	0x20000
 
 If you have a Dediprog em100pro connected then you can write the image with:
 

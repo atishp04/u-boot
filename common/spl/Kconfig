@@ -208,6 +208,7 @@ config SPL_SYS_MALLOC_SIMPLE
 config TPL_SYS_MALLOC_SIMPLE
 	bool
 	prompt "Only use malloc_simple functions in the TPL"
+	depends on TPL
 	help
 	  Say Y here to only use the *_simple malloc functions from
 	  malloc_simple.c, rather then using the versions from dlmalloc.c;
@@ -261,6 +262,7 @@ config SPL_BANNER_PRINT
 
 config TPL_BANNER_PRINT
 	bool "Enable output of the TPL banner 'U-Boot TPL ...'"
+	depends on TPL
 	default y
 	help
 	  If this option is enabled, SPL will not print the banner with version
@@ -433,6 +435,7 @@ config SPL_HASH_SUPPORT
 
 config TPL_HASH_SUPPORT
 	bool "Support hashing drivers in TPL"
+	depends on TPL
 	select SHA1
 	select SHA256
 	help
@@ -1000,6 +1003,14 @@ config SPL_SPI_LOAD
 
 endif # SPL_SPI_FLASH_SUPPORT
 
+config SYS_SPI_U_BOOT_OFFS
+	hex "address of u-boot payload in SPI flash"
+	default 0x0
+	depends on SPL_SPI_LOAD || SPL_SPI_SUNXI
+	help
+	 Address within SPI-Flash from where the u-boot payload is fetched
+	 from.
+
 config SPL_SPI_SUPPORT
 	bool "Support SPI drivers"
 	help
@@ -1145,6 +1156,23 @@ config SPL_OPTEE
 	help
 	  OP-TEE is an open source Trusted OS  which is loaded by SPL.
 	  More detail at: https://github.com/OP-TEE/optee_os
+
+config SPL_OPENSBI
+	bool "Support RISC-V OpenSBI"
+	depends on RISCV && SPL_RISCV_MMODE && RISCV_SMODE
+	help
+	  OpenSBI is an open-source implementation of the RISC-V Supervisor Binary
+	  Interface (SBI) specification. U-Boot supports the OpenSBI FW_DYNAMIC
+	  firmware. It is loaded and started by U-Boot SPL.
+
+	  More details are available at https://github.com/riscv/opensbi and
+	  https://github.com/riscv/riscv-sbi-doc
+
+config SPL_OPENSBI_LOAD_ADDR
+	hex "OpenSBI load address"
+	depends on SPL_OPENSBI
+	help
+	  Load address of the OpenSBI binary.
 
 config TPL
 	bool

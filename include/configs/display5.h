@@ -45,7 +45,6 @@
 #define CONFIG_SYS_SPI_ARGS_SIZE        0x10000
 
 #include "imx6_spl.h"
-#define CONFIG_SYS_SPI_U_BOOT_OFFS	0x20000
 
 #define CONFIG_CMDLINE_TAG
 #define CONFIG_SETUP_MEMORY_TAGS
@@ -77,7 +76,6 @@
 #endif
 
 /* MMC Configs */
-#define CONFIG_FSL_USDHC
 #define CONFIG_SYS_FSL_ESDHC_ADDR	0
 #define CONFIG_SYS_FSL_USDHC_NUM	2
 

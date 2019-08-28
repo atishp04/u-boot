@@ -116,7 +116,6 @@
 #define CONFIG_SYS_SPI_CLK		clk_get(DAVINCI_SPI1_CLKID)
 
 #ifdef CONFIG_USE_SPIFLASH
-#define CONFIG_SYS_SPI_U_BOOT_OFFS	0x8000
 #define CONFIG_SYS_SPI_U_BOOT_SIZE	0x30000
 #endif
 
@@ -133,7 +132,6 @@
 #ifdef CONFIG_NAND
 #define CONFIG_ENV_OFFSET		0x0 /* Block 0--not used by bootcode */
 #define CONFIG_ENV_SIZE			(128 << 9)
-#define	CONFIG_SYS_NAND_USE_FLASH_BBT
 #define CONFIG_SYS_NAND_4BIT_HW_ECC_OOBFIRST
 #define	CONFIG_SYS_NAND_PAGE_2K
 #define CONFIG_SYS_NAND_CS		3
@@ -206,7 +204,12 @@
 #define CONFIG_SYS_CBSIZE	1024 /* Console I/O Buffer Size	*/
 #define CONFIG_SYS_BARGSIZE	CONFIG_SYS_CBSIZE /* Boot Args Buffer Size */
 #define CONFIG_SYS_LOAD_ADDR	(PHYS_SDRAM_1 + 0x700000)
-#define CONFIG_MX_CYCLIC
+
+/*
+ * USB Configs
+ */
+#define CONFIG_USB_OHCI_NEW
+#define CONFIG_SYS_USB_OHCI_MAX_ROOT_PORTS	15
 
 /*
  * Linux Information

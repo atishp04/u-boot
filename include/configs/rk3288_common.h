@@ -12,7 +12,6 @@
 #define CONFIG_SYS_BOOTM_LEN (16 << 20) /* 16MB */
 
 #define CONFIG_SKIP_LOWLEVEL_INIT_ONLY
-#define CONFIG_SYS_MALLOC_LEN		(32 << 20)
 #define CONFIG_SYS_CBSIZE		1024
 
 #define CONFIG_ROCKCHIP_STIMER_BASE	0xff810020
@@ -30,7 +29,6 @@
 #define CONFIG_IRAM_BASE		0xff700000
 
 /* RAW SD card / eMMC locations. */
-#define CONFIG_SYS_SPI_U_BOOT_OFFS	(128 << 10)
 
 /* FAT sd card locations. */
 #define CONFIG_SYS_MMCSD_FS_BOOT_PARTITION	1
