@@ -31,8 +31,6 @@
 
 #include <config_distro_bootcmd.h>
 
-#define CONFIG_SERVERIP 10.11.143.218
-
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"fdt_high=0xffffffffffffffff\0" \
 	"initrd_high=0xffffffffffffffff\0" \
