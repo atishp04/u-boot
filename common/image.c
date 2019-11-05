@@ -196,6 +196,15 @@ struct table_info {
 	const table_entry_t *table;
 };
 
+static const comp_magic_t image_comp[] = {
+	{	IH_COMP_BZIP2,	"bzip2",	{0x42, 0x5a},},
+	{	IH_COMP_GZIP,	"gzip",		{0x1f, 0x8b},},
+	{	IH_COMP_LZMA,	"lzma",		{0x5d, 0x00},},
+	{	IH_COMP_LZO,	"lzo",		{0x89, 0x4c},},
+	{	IH_COMP_NONE,	"none",		{},	},
+};
+
+
 static const struct table_info table_info[IH_COUNT] = {
 	{ "architecture", IH_ARCH_COUNT, uimage_arch },
 	{ "compression", IH_COMP_COUNT, uimage_comp },
@@ -401,6 +410,22 @@ static void print_decomp_msg(int comp_type, int type, bool is_xip)
 		printf("   Uncompressing %s\n", name);
 }
 
+int image_decomp_type(const unsigned char *buf, ulong len)
+{
+	const comp_magic_t *cmagic = image_comp;
+
+	if (len < 2) {
+		return -1;
+	}
+
+	for (; cmagic->comp_id > 0; cmagic++) {
+		if (!memcmp(buf, cmagic->magic, 2))
+			break;
+	}
+
+	return cmagic->comp_id;
+}
+
 int image_decomp(int comp, ulong load, ulong image_start, int type,
 		 void *load_buf, void *image_buf, ulong image_len,
 		 uint unc_len, ulong *load_end)
@@ -468,7 +493,6 @@ int image_decomp(int comp, ulong load, ulong image_start, int type,
 #ifdef CONFIG_LZ4
 	case IH_COMP_LZ4: {
 		size_t size = unc_len;
-
 		ret = ulz4fn(image_buf, image_len, load_buf, &size);
 		image_len = size;
 		break;
