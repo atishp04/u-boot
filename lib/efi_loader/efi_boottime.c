@@ -2810,6 +2810,9 @@ static efi_status_t EFIAPI efi_open_protocol
 		  protocol_interface, agent_handle, controller_handle,
 		  attributes);
 
+	printf("%p, %pUl, %p, %p, %p, 0x%x", handle, protocol,
+		  protocol_interface, agent_handle, controller_handle,
+		  attributes);
 	if (!handle || !protocol ||
 	    (!protocol_interface && attributes !=
 	     EFI_OPEN_PROTOCOL_TEST_PROTOCOL)) {

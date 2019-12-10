@@ -43,7 +43,7 @@ const char *__efi_nesting_dec(void);
  */
 #define EFI_ENTRY(format, ...) do { \
 	assert(__efi_entry_check()); \
-	debug("%sEFI: Entry %s(" format ")\n", __efi_nesting_inc(), \
+	printf("%sEFI: Entry %s(" format ")\n", __efi_nesting_inc(), \
 		__func__, ##__VA_ARGS__); \
 	} while(0)
 
