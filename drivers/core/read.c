@@ -44,6 +44,16 @@ int dev_read_u32u(struct udevice *dev, const char *propname, uint *outp)
 	return 0;
 }
 
+int dev_read_u64(struct udevice *dev, const char *propname, u64 *outp)
+{
+	return ofnode_read_u64(dev_ofnode(dev), propname, outp);
+}
+
+u64 dev_read_u64_default(struct udevice *dev, const char *propname, u64 def)
+{
+	return ofnode_read_u64_default(dev_ofnode(dev), propname, def);
+}
+
 const char *dev_read_string(struct udevice *dev, const char *propname)
 {
 	return ofnode_read_string(dev_ofnode(dev), propname);
@@ -296,4 +306,15 @@ int dev_read_alias_highest_id(const char *stem)
 		return of_alias_get_highest_id(stem);
 
 	return fdtdec_get_alias_highest_id(gd->fdt_blob, stem);
+}
+
+fdt_addr_t dev_read_addr_pci(struct udevice *dev)
+{
+	ulong addr;
+
+	addr = dev_read_addr(dev);
+	if (addr == FDT_ADDR_T_NONE && !of_live_active())
+		addr = devfdt_get_addr_pci(dev);
+
+	return addr;
 }

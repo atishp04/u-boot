@@ -12,8 +12,8 @@
 #include <linux/sizes.h>
 #include <config_distro_bootcmd.h>
 #include <environment/ti/mmc.h>
-
-#define CONFIG_ENV_SIZE			(128 << 10)
+#include <environment/ti/k3_rproc.h>
+#include <environment/ti/ufs.h>
 
 /* DDR Configuration */
 #define CONFIG_SYS_SDRAM_BASE1		0x880000000
@@ -22,7 +22,6 @@
 #ifdef CONFIG_TARGET_J721E_A72_EVM
 #define CONFIG_SYS_INIT_SP_ADDR         (CONFIG_SPL_TEXT_BASE +	\
 					 CONFIG_SYS_K3_NON_SECURE_MSRAM_SIZE)
-#define CONFIG_SYS_SPI_U_BOOT_OFFS	0x280000
 #else
 /*
  * Maximum size in memory allocated to the SPL BSS. Keep it as tight as
@@ -45,7 +44,6 @@
 /* Configure R5 SPL post-relocation malloc pool in DDR */
 #define CONFIG_SYS_SPL_MALLOC_START	0x84000000
 #define CONFIG_SYS_SPL_MALLOC_SIZE	SZ_16M
-#define CONFIG_SYS_SPI_U_BOOT_OFFS	0x80000
 #endif
 
 #ifdef CONFIG_SYS_K3_SPL_ATF
@@ -57,12 +55,13 @@
 #define CONFIG_SYS_BOOTM_LEN		SZ_64M
 #define CONFIG_CQSPI_REF_CLK		133333333
 
+/* HyperFlash related configuration */
+#define CONFIG_SYS_MAX_FLASH_BANKS_DETECT 1
+
 /* U-Boot general configuration */
 #define EXTRA_ENV_J721E_BOARD_SETTINGS					\
 	"default_device_tree=" CONFIG_DEFAULT_DEVICE_TREE ".dtb\0"	\
-	"findfdt="							\
-		"setenv fdtfile ${default_device_tree};"		\
-		"setenv overlay_files ${name_overlays}\0"		\
+	"findfdt=setenv fdtfile ${default_device_tree}\0"		\
 	"loadaddr=0x80080000\0"						\
 	"fdtaddr=0x82000000\0"						\
 	"overlayaddr=0x83000000\0"					\
@@ -83,7 +82,7 @@
 	"get_overlay_mmc="						\
 		"fdt address ${fdtaddr};"				\
 		"fdt resize 0x100000;"					\
-		"for overlay in $overlay_files;"			\
+		"for overlay in $name_overlays;"			\
 		"do;"							\
 		"load mmc ${bootpart} ${overlayaddr} ${bootdir}/${overlay} && "	\
 		"fdt apply ${overlayaddr};"				\
@@ -91,11 +90,23 @@
 	"get_kern_mmc=load mmc ${bootpart} ${loadaddr} "		\
 		"${bootdir}/${name_kern}\0"
 
+#ifdef DEFAULT_RPROCS
+#undef DEFAULT_RPROCS
+#endif
+#define DEFAULT_RPROCS	""						\
+		"3 /lib/firmware/j7-main-r5f0_1-fw "			\
+		"4 /lib/firmware/j7-main-r5f1_0-fw "			\
+		"6 /lib/firmware/j7-c66_0-fw "				\
+		"7 /lib/firmware/j7-c66_1-fw "				\
+		"8 /lib/firmware/j7-c71_0-fw "
+
 /* Incorporate settings into the U-Boot environment */
 #define CONFIG_EXTRA_ENV_SETTINGS					\
 	DEFAULT_MMC_TI_ARGS						\
 	EXTRA_ENV_J721E_BOARD_SETTINGS					\
-	EXTRA_ENV_J721E_BOARD_SETTINGS_MMC
+	EXTRA_ENV_J721E_BOARD_SETTINGS_MMC				\
+	EXTRA_ENV_RPROC_SETTINGS					\
+	DEFAULT_UFS_TI_ARGS
 
 /* Now for the remaining common defines */
 #include <configs/ti_armv7_common.h>

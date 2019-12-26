@@ -44,6 +44,7 @@ static inline bool dev_of_valid(struct udevice *dev)
 }
 
 #ifndef CONFIG_DM_DEV_READ_INLINE
+
 /**
  * dev_read_u32() - read a 32-bit integer from a device's DT property
  *
@@ -95,6 +96,26 @@ int dev_read_s32_default(struct udevice *dev, const char *propname, int def);
  * @return 0 if OK, -ve on error
  */
 int dev_read_u32u(struct udevice *dev, const char *propname, uint *outp);
+
+/**
+ * dev_read_u64() - read a 64-bit integer from a device's DT property
+ *
+ * @dev:        device to read DT property from
+ * @propname:   name of the property to read from
+ * @outp:       place to put value (if found)
+ * @return 0 if OK, -ve on error
+ */
+int dev_read_u64(struct udevice *dev, const char *propname, u64 *outp);
+
+/**
+ * dev_read_u64_default() - read a 64-bit integer from a device's DT property
+ *
+ * @dev:        device to read DT property from
+ * @propname:   name of the property to read from
+ * @def:        default value to return if the property has no value
+ * @return property value, or @def if not found
+ */
+u64 dev_read_u64_default(struct udevice *dev, const char *propname, u64 def);
 
 /**
  * dev_read_string() - Read a string from a device's DT property
@@ -226,6 +247,26 @@ fdt_addr_t dev_read_addr(struct udevice *dev);
  * @return pointer or NULL if not found
  */
 void *dev_read_addr_ptr(struct udevice *dev);
+
+/**
+ * dev_read_addr_pci() - Read an address and handle PCI address translation
+ *
+ * At present U-Boot does not have address translation logic for PCI in the
+ * livetree implementation (of_addr.c). This special function supports this for
+ * the flat tree implementation.
+ *
+ * This function should be removed (and code should use dev_read() instead)
+ * once:
+ *
+ * 1. PCI address translation is added; and either
+ * 2. everything uses livetree where PCI translation is used (which is feasible
+ *    in SPL and U-Boot proper) or PCI address translation is added to
+ *    fdtdec_get_addr() and friends.
+ *
+ * @dev: Device to read from
+ * @return address or FDT_ADDR_T_NONE if not found
+ */
+fdt_addr_t dev_read_addr_pci(struct udevice *dev);
 
 /**
  * dev_remap_addr() - Get the reg property of a device as a
@@ -601,6 +642,18 @@ static inline int dev_read_u32u(struct udevice *dev,
 	return 0;
 }
 
+static inline int dev_read_u64(struct udevice *dev,
+			       const char *propname, u64 *outp)
+{
+	return ofnode_read_u64(dev_ofnode(dev), propname, outp);
+}
+
+static inline u64 dev_read_u64_default(struct udevice *dev,
+				       const char *propname, u64 def)
+{
+	return ofnode_read_u64_default(dev_ofnode(dev), propname, def);
+}
+
 static inline const char *dev_read_string(struct udevice *dev,
 					  const char *propname)
 {
@@ -656,6 +709,11 @@ static inline fdt_addr_t dev_read_addr(struct udevice *dev)
 static inline void *dev_read_addr_ptr(struct udevice *dev)
 {
 	return devfdt_get_addr_ptr(dev);
+}
+
+static inline fdt_addr_t dev_read_addr_pci(struct udevice *dev)
+{
+	return devfdt_get_addr_pci(dev);
 }
 
 static inline void *dev_remap_addr(struct udevice *dev)

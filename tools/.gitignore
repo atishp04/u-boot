@@ -14,6 +14,7 @@
 /gen_eth_addr
 /gen_ethaddr_crc
 /ifdtool
+/ifwitool
 /img2srec
 /kwboot
 /lib/
@@ -30,4 +31,5 @@
 /spl_size_limit
 /sunxi-spl-image-builder
 /ubsha1
+/version.h
 /xway-swap-bytes

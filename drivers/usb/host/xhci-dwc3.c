@@ -14,7 +14,7 @@
 #include <usb.h>
 #include <dwc3-uboot.h>
 
-#include "xhci.h"
+#include <usb/xhci.h>
 #include <asm/io.h>
 #include <linux/usb/dwc3.h>
 #include <linux/usb/otg.h>
@@ -149,6 +149,9 @@ static int xhci_dwc3_probe(struct udevice *dev)
 
 	if (dev_read_bool(dev, "snps,dis-u2-freeclk-exists-quirk"))
 		reg &= ~DWC3_GUSB2PHYCFG_U2_FREECLK_EXISTS;
+
+	if (dev_read_bool(dev, "snps,dis_u2_susphy_quirk"))
+		reg &= ~DWC3_GUSB2PHYCFG_SUSPHY;
 
 	writel(reg, &dwc3_reg->g_usb2phycfg[0]);
 

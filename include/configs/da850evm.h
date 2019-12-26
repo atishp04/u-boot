@@ -29,7 +29,6 @@
 #define CONFIG_SKIP_LOWLEVEL_INIT_ONLY
 
 #ifdef CONFIG_DIRECT_NOR_BOOT
-#define CONFIG_ARCH_CPU_INIT
 #define CONFIG_SYS_DV_NOR_BOOT_CFG	(0x11)
 #endif
 
@@ -106,20 +105,11 @@
 /*
  * Serial Driver info
  */
-
-#if !CONFIG_IS_ENABLED(DM_SERIAL)
-#define CONFIG_SYS_NS16550_SERIAL
-#define CONFIG_SYS_NS16550_COM1	DAVINCI_UART2_BASE /* Base address of UART2 */
-#endif
 #define CONFIG_SYS_NS16550_CLK	clk_get(DAVINCI_UART2_CLKID)
 
 #define CONFIG_SYS_SPI_CLK		clk_get(DAVINCI_SPI1_CLKID)
-#ifdef CONFIG_SPL_BUILD
-#define CONFIG_SYS_SPI_BASE		DAVINCI_SPI1_BASE
-#endif
 
 #ifdef CONFIG_USE_SPIFLASH
-#define CONFIG_SYS_SPI_U_BOOT_OFFS	0x8000
 #define CONFIG_SYS_SPI_U_BOOT_SIZE	0x40000
 #endif
 
@@ -133,13 +123,7 @@
 /*
  * Flash & Environment
  */
-#ifdef CONFIG_NAND
-#ifdef CONFIG_ENV_IS_IN_NAND
-#define CONFIG_ENV_OFFSET		0x0 /* Block 0--not used by bootcode */
-#define CONFIG_ENV_SIZE			(128 << 10)
-#define CONFIG_ENV_SECT_SIZE	(128 << 10)
-#endif
-#define	CONFIG_SYS_NAND_USE_FLASH_BBT
+#ifdef CONFIG_MTD_RAW_NAND
 #define CONFIG_SYS_NAND_4BIT_HW_ECC_OOBFIRST
 #define	CONFIG_SYS_NAND_PAGE_2K
 #define CONFIG_SYS_NAND_CS		3
@@ -192,24 +176,10 @@
 #ifdef CONFIG_USE_NOR
 #define CONFIG_SYS_MAX_FLASH_BANKS	1 /* max number of flash banks */
 #define CONFIG_SYS_FLASH_SECT_SZ	(128 << 10) /* 128KB */
-#define CONFIG_ENV_OFFSET		(SZ_1M)
-#define CONFIG_ENV_SIZE			(10 << 10) /* 10KB */
 #define CONFIG_SYS_FLASH_BASE		DAVINCI_ASYNC_EMIF_DATA_CE2_BASE
 #define PHYS_FLASH_SIZE			(8 << 20) /* Flash size 8MB */
 #define CONFIG_SYS_MAX_FLASH_SECT ((PHYS_FLASH_SIZE/CONFIG_SYS_FLASH_SECT_SZ)\
 	       + 3)
-#define CONFIG_ENV_SECT_SIZE		CONFIG_SYS_FLASH_SECT_SZ
-#endif
-
-#ifdef CONFIG_USE_SPIFLASH
-#ifdef CONFIG_ENV_IS_IN_SPI_FLASH
-#define CONFIG_ENV_SIZE			(64 << 10)
-#define CONFIG_ENV_OFFSET		(512 << 10)
-#define CONFIG_ENV_SECT_SIZE	(64 << 10)
-#endif
-#ifdef CONFIG_SPL_BUILD
-#undef CONFIG_SPI_FLASH_MTD
-#endif
 #endif
 
 /*
@@ -219,7 +189,6 @@
 #define CONFIG_SYS_CBSIZE	1024 /* Console I/O Buffer Size	*/
 #define CONFIG_SYS_BARGSIZE	CONFIG_SYS_CBSIZE /* Boot Args Buffer Size */
 #define CONFIG_SYS_LOAD_ADDR	(PHYS_SDRAM_1 + 0x700000)
-#define CONFIG_MX_CYCLIC
 
 /*
  * Linux Information
@@ -257,10 +226,9 @@
 #define CONFIG_CLOCKS
 #endif
 
-#if !defined(CONFIG_NAND) && \
+#if !defined(CONFIG_MTD_RAW_NAND) && \
 	!defined(CONFIG_USE_NOR) && \
 	!defined(CONFIG_USE_SPIFLASH)
-#define CONFIG_ENV_SIZE		(16 << 10)
 #endif
 
 /* USB Configs */

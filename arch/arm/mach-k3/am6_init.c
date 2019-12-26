@@ -116,6 +116,13 @@ void board_init_f(ulong dummy)
 	/* Perform EEPROM-based board detection */
 	do_board_detect();
 
+#if defined(CONFIG_CPU_V7R) && defined(CONFIG_K3_AVS0)
+	ret = uclass_get_device_by_driver(UCLASS_MISC, DM_GET_DRIVER(k3_avs),
+					  &dev);
+	if (ret)
+		printf("AVS init failed: %d\n", ret);
+#endif
+
 #ifdef CONFIG_K3_AM654_DDRSS
 	ret = uclass_get_device(UCLASS_RAM, 0, &dev);
 	if (ret)
@@ -219,10 +226,9 @@ u32 spl_boot_device(void)
 
 void release_resources_for_core_shutdown(void)
 {
-	struct udevice *dev;
-	struct ti_sci_handle *ti_sci;
-	struct ti_sci_dev_ops *dev_ops;
-	struct ti_sci_proc_ops *proc_ops;
+	struct ti_sci_handle *ti_sci = get_ti_sci_handle();
+	struct ti_sci_dev_ops *dev_ops = &ti_sci->ops.dev_ops;
+	struct ti_sci_proc_ops *proc_ops = &ti_sci->ops.proc_ops;
 	int ret;
 	u32 i;
 
@@ -230,15 +236,6 @@ void release_resources_for_core_shutdown(void)
 		AM6_DEV_MCU_RTI0,
 		AM6_DEV_MCU_RTI1,
 	};
-
-	/* Get handle to Device Management and Security Controller (SYSFW) */
-	ret = uclass_get_device_by_name(UCLASS_FIRMWARE, "dmsc", &dev);
-	if (ret)
-		panic("Failed to get handle to SYSFW (%d)\n", ret);
-
-	ti_sci = (struct ti_sci_handle *)(ti_sci_get_handle_from_sysfw(dev));
-	dev_ops = &ti_sci->ops.dev_ops;
-	proc_ops = &ti_sci->ops.proc_ops;
 
 	/* Iterate through list of devices to put (shutdown) */
 	for (i = 0; i < ARRAY_SIZE(put_device_ids); i++) {

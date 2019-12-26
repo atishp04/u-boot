@@ -61,23 +61,14 @@ BUR_COMMON_ENV \
 " bootm ${loadaddr} - ${dtbaddr}\0"
 #endif /* !CONFIG_SPL_BUILD*/
 
-/* undefine command which we not need here */
-#undef CONFIG_BOOTM_NETBSD
-#undef CONFIG_BOOTM_PLAN9
-#undef CONFIG_BOOTM_RTEMS
-
 /* Support both device trees and ATAGs. */
 #define CONFIG_CMDLINE_TAG
 #define CONFIG_SETUP_MEMORY_TAGS
 #define CONFIG_INITRD_TAG
 
 /* SPI Flash */
-#define CONFIG_SYS_SPI_U_BOOT_OFFS		0x40000
 
 /* Environment */
-#define CONFIG_SYS_REDUNDAND_ENVIRONMENT
-#define CONFIG_ENV_OFFSET_REDUND		(CONFIG_ENV_OFFSET + \
-						 CONFIG_ENV_SECT_SIZE)
 
 #define CONFIG_CONS_INDEX			1
 #endif	/* __CONFIG_BRSMARC1_H__ */

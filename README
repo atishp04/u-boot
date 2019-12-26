@@ -267,6 +267,13 @@ board_init_f():
 	- preloader_console_init() can be called here in extremis
 	- should set up SDRAM, and anything needed to make the UART work
 	- these is no need to clear BSS, it will be done by crt0.S
+	- for specific scenarios on certain architectures an early BSS *can*
+	  be made available (via CONFIG_SPL_EARLY_BSS by moving the clearing
+	  of BSS prior to entering board_init_f()) but doing so is discouraged.
+	  Instead it is strongly recommended to architect any code changes
+	  or additions such to not depend on the availability of BSS during
+	  board_init_f() as indicated in other sections of this README to
+	  maintain compatibility and consistency across the entire code base.
 	- must return normally from this function (don't call board_init_r()
 		directly)
 
@@ -2976,7 +2983,7 @@ Low Level (hardware related) configuration options:
 - CONFIG_SYS_SRIOn_MEM_VIRT:
 		Virtual Address of SRIO port 'n' memory region
 
-- CONFIG_SYS_SRIOn_MEM_PHYS:
+- CONFIG_SYS_SRIOn_MEM_PHYxS:
 		Physical Address of SRIO port 'n' memory region
 
 - CONFIG_SYS_SRIOn_MEM_SIZE:
@@ -3075,14 +3082,16 @@ Low Level (hardware related) configuration options:
 		instruction cache) is still performed.
 
 - CONFIG_SPL_BUILD
-		Modifies the behaviour of start.S when compiling a loader
-		that is executed before the actual U-Boot. E.g. when
-		compiling a NAND SPL.
+		Set when the currently-running compilation is for an artifact
+		that will end up in the SPL (as opposed to the TPL or U-Boot
+		proper). Code that needs stage-specific behavior should check
+		this.
 
 - CONFIG_TPL_BUILD
-		Modifies the behaviour of start.S  when compiling a loader
-		that is executed after the SPL and before the actual U-Boot.
-		It is loaded by the SPL.
+		Set when the currently-running compilation is for an artifact
+		that will end up in the TPL (as opposed to the SPL or U-Boot
+		proper). Code that needs stage-specific behavior should check
+		this.
 
 - CONFIG_SYS_MPC85XX_NO_RESETVEC
 		Only for 85xx systems. If this variable is specified, the section
@@ -3299,7 +3308,7 @@ Testing of U-Boot Modifications, Ports to New Hardware, etc.:
 If you have modified U-Boot sources (for instance added a new board
 or support for new devices, a new CPU, etc.) you are expected to
 provide feedback to the other developers. The feedback normally takes
-the form of a "patch", i. e. a context diff against a certain (latest
+the form of a "patch", i.e. a context diff against a certain (latest
 official or latest in the git repository) version of U-Boot sources.
 
 But before you submit such a patch, please verify that your modifi-

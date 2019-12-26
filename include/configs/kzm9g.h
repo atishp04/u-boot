@@ -12,8 +12,6 @@
 
 #include <asm/arch/rmobile.h>
 
-#define CONFIG_ARCH_CPU_INIT
-
 #define CONFIG_CMDLINE_TAG
 #define CONFIG_SETUP_MEMORY_TAGS
 #define CONFIG_INITRD_TAG
@@ -64,9 +62,6 @@
 #undef  CONFIG_SYS_FLASH_QUIET_TEST
 #define CONFIG_SYS_FLASH_EMPTY_INFO
 #define FLASH_SECTOR_SIZE	(256 * 1024)	/* 256 KB sectors */
-#define CONFIG_ENV_SIZE		FLASH_SECTOR_SIZE
-#define CONFIG_ENV_OFFSET	FLASH_SECTOR_SIZE
-#define CONFIG_ENV_ADDR		(CONFIG_SYS_FLASH_BASE + CONFIG_ENV_OFFSET)
 
 /* Timeout for Flash erase operations (in ms) */
 #define CONFIG_SYS_FLASH_ERASE_TOUT	(3 * 1000)

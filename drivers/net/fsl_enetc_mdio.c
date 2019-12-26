@@ -17,8 +17,13 @@
 
 static void enetc_mdio_wait_bsy(struct enetc_mdio_priv *priv)
 {
-	while (enetc_read(priv, ENETC_MDIO_CFG) & ENETC_EMDIO_CFG_BSY)
+	int to = 10000;
+
+	while ((enetc_read(priv, ENETC_MDIO_CFG) & ENETC_EMDIO_CFG_BSY) &&
+	       --to)
 		cpu_relax();
+	if (!to)
+		printf("T");
 }
 
 int enetc_mdio_read_priv(struct enetc_mdio_priv *priv, int addr, int devad,
@@ -144,6 +149,7 @@ U_BOOT_DRIVER(enetc_mdio) = {
 
 static struct pci_device_id enetc_mdio_ids[] = {
 	{ PCI_DEVICE(PCI_VENDOR_ID_FREESCALE, PCI_DEVICE_ID_ENETC_MDIO) },
+	{ }
 };
 
 U_BOOT_PCI_DEVICE(enetc_mdio, enetc_mdio_ids);

@@ -11,10 +11,12 @@
 #include <command.h>
 #include <env.h>
 #include <env_internal.h>
+#include <sort.h>
 #include <linux/stddef.h>
 #include <search.h>
 #include <errno.h>
 #include <malloc.h>
+#include <u-boot/crc.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -24,10 +26,7 @@ DECLARE_GLOBAL_DATA_PTR;
 #include <env_default.h>
 
 struct hsearch_data env_htab = {
-#if CONFIG_IS_ENABLED(ENV_SUPPORT)
-	/* defined in flags.c, only compile with ENV_SUPPORT */
 	.change_ok = env_flags_validate,
-#endif
 };
 
 /*
@@ -229,9 +228,7 @@ void env_relocate(void)
 #if defined(CONFIG_NEEDS_MANUAL_RELOC)
 	env_reloc();
 	env_fix_drivers();
-
-	if (env_htab.change_ok)
-		env_htab.change_ok += gd->reloc_off;
+	env_htab.change_ok += gd->reloc_off;
 #endif
 	if (gd->env_valid == ENV_INVALID) {
 #if defined(CONFIG_ENV_IS_NOWHERE) || defined(CONFIG_SPL_BUILD)

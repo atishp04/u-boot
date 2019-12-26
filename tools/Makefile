@@ -15,7 +15,6 @@ CONFIG_SHA1_CHECK_UB_IMG = y
 CONFIG_ARCH_SUNXI = y
 endif
 
-subdir-$(HOST_TOOLS_ALL) += easylogo
 subdir-$(HOST_TOOLS_ALL) += gdb
 
 # Merge all the different vars for envcrc into one
@@ -207,6 +206,9 @@ hostprogs-y += spl_size_limit
 endif
 
 hostprogs-$(CONFIG_MIPS) += mips-relocs
+
+hostprogs-$(CONFIG_ASN1_COMPILER)	+= asn1_compiler
+HOSTCFLAGS_asn1_compiler.o = -idirafter $(srctree)/include
 
 # We build some files with extra pedantic flags to try to minimize things
 # that won't build on some weird host compiler -- though there are lots of

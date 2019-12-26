@@ -422,6 +422,7 @@ struct efi_device_path_acpi_path {
 #  define DEVICE_PATH_SUB_TYPE_MSG_USB		0x05
 #  define DEVICE_PATH_SUB_TYPE_MSG_MAC_ADDR	0x0b
 #  define DEVICE_PATH_SUB_TYPE_MSG_USB_CLASS	0x0f
+#  define DEVICE_PATH_SUB_TYPE_MSG_NVME		0x17
 #  define DEVICE_PATH_SUB_TYPE_MSG_SD		0x1a
 #  define DEVICE_PATH_SUB_TYPE_MSG_MMC		0x1d
 
@@ -464,6 +465,12 @@ struct efi_device_path_sd_mmc_path {
 	u8 slot_number;
 } __packed;
 
+struct efi_device_path_nvme {
+	struct efi_device_path dp;
+	u32 ns_id;
+	u8 eui64[8];
+} __packed;
+
 #define DEVICE_PATH_TYPE_MEDIA_DEVICE		0x04
 #  define DEVICE_PATH_SUB_TYPE_HARD_DRIVE_PATH	0x01
 #  define DEVICE_PATH_SUB_TYPE_CDROM_PATH	0x02
@@ -483,7 +490,7 @@ struct efi_device_path_cdrom_path {
 	struct efi_device_path dp;
 	u32 boot_entry;
 	u64 partition_start;
-	u64 partition_end;
+	u64 partition_size;
 } __packed;
 
 struct efi_device_path_file_path {
@@ -1281,6 +1288,8 @@ struct efi_simple_network {
 			struct efi_mac_address *dest_addr, u16 *protocol);
 	struct efi_event *wait_for_packet;
 	struct efi_simple_network_mode *mode;
+	/* private fields */
+	u32 int_status;
 };
 
 #define EFI_PXE_BASE_CODE_PROTOCOL_GUID \
@@ -1459,6 +1468,12 @@ struct efi_pxe_base_code_protocol {
 #define EFI_FILE_PROTOCOL_REVISION2	0x00020000
 #define EFI_FILE_PROTOCOL_LATEST_REVISION EFI_FILE_PROTOCOL_REVISION2
 
+struct efi_file_io_token {
+	struct efi_event *event;
+	efi_status_t status;
+	efi_uintn_t buffer_size;
+	void *buffer;};
+
 struct efi_file_handle {
 	u64 rev;
 	efi_status_t (EFIAPI *open)(struct efi_file_handle *file,
@@ -1481,10 +1496,16 @@ struct efi_file_handle {
 			const efi_guid_t *info_type, efi_uintn_t buffer_size,
 			void *buffer);
 	efi_status_t (EFIAPI *flush)(struct efi_file_handle *file);
-	/*
-	 * TODO: We currently only support EFI file protocol revision 0x00010000
-	 *	 while UEFI specs 2.4 - 2.7 prescribe revision 0x00020000.
-	 */
+	efi_status_t (EFIAPI *open_ex)(struct efi_file_handle *file,
+			struct efi_file_handle **new_handle,
+			u16 *file_name, u64 open_mode, u64 attributes,
+			struct efi_file_io_token *token);
+	efi_status_t (EFIAPI *read_ex)(struct efi_file_handle *file,
+			struct efi_file_io_token *token);
+	efi_status_t (EFIAPI *write_ex)(struct efi_file_handle *file,
+			struct efi_file_io_token *token);
+	efi_status_t (EFIAPI *flush_ex)(struct efi_file_handle *file,
+			struct efi_file_io_token *token);
 };
 
 #define EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_REVISION 0x00010000
@@ -1502,6 +1523,10 @@ struct efi_simple_file_system_protocol {
 #define EFI_FILE_SYSTEM_INFO_GUID \
 	EFI_GUID(0x09576e93, 0x6d3f, 0x11d2, \
 		 0x8e, 0x39, 0x00, 0xa0, 0xc9, 0x69, 0x72, 0x3b)
+
+#define EFI_FILE_SYSTEM_VOLUME_LABEL_ID \
+	EFI_GUID(0xdb47d7d3, 0xfe81, 0x11d3, \
+		 0x9a, 0x35, 0x00, 0x90, 0x27, 0x3f, 0xC1, 0x4d)
 
 #define EFI_FILE_MODE_READ	0x0000000000000001
 #define EFI_FILE_MODE_WRITE	0x0000000000000002

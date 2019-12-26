@@ -39,7 +39,6 @@
 #define CONFIG_LBA48
 
 /* MMC Configs */
-#define CONFIG_FSL_USDHC
 #define CONFIG_SYS_FSL_ESDHC_ADDR      0
 
 /* USB Configs */
@@ -204,10 +203,6 @@
 	(CONFIG_SYS_INIT_RAM_ADDR + CONFIG_SYS_INIT_SP_OFFSET)
 
 /* FLASH and environment organization */
-
-#define CONFIG_ENV_SIZE                 (8 * 1024)
-#define CONFIG_ENV_OFFSET               (768 * 1024)
-#define CONFIG_ENV_SECT_SIZE            (64 * 1024)
 
 #define CONFIG_SYS_FSL_USDHC_NUM        3
 

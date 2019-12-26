@@ -13,12 +13,14 @@
 #include <bloblist.h>
 #include <console.h>
 #include <cpu.h>
+#include <cpu_func.h>
 #include <dm.h>
 #include <env.h>
 #include <env_internal.h>
 #include <fdtdec.h>
 #include <fs.h>
 #include <i2c.h>
+#include <init.h>
 #include <initcall.h>
 #include <lcd.h>
 #include <malloc.h>
@@ -26,6 +28,7 @@
 #include <os.h>
 #include <post.h>
 #include <relocate.h>
+#include <serial.h>
 #ifdef CONFIG_SPL
 #include <spl.h>
 #endif
@@ -467,12 +470,38 @@ static int reserve_uboot(void)
 	return 0;
 }
 
+#ifdef CONFIG_SYS_NONCACHED_MEMORY
+static int reserve_noncached(void)
+{
+	/*
+	 * The value of gd->start_addr_sp must match the value of malloc_start
+	 * calculated in boatrd_f.c:initr_malloc(), which is passed to
+	 * board_r.c:mem_malloc_init() and then used by
+	 * cache.c:noncached_init()
+	 *
+	 * These calculations must match the code in cache.c:noncached_init()
+	 */
+	gd->start_addr_sp = ALIGN(gd->start_addr_sp, MMU_SECTION_SIZE) -
+		MMU_SECTION_SIZE;
+	gd->start_addr_sp -= ALIGN(CONFIG_SYS_NONCACHED_MEMORY,
+				   MMU_SECTION_SIZE);
+	debug("Reserving %dM for noncached_alloc() at: %08lx\n",
+	      CONFIG_SYS_NONCACHED_MEMORY >> 20, gd->start_addr_sp);
+
+	return 0;
+}
+#endif
+
 /* reserve memory for malloc() area */
 static int reserve_malloc(void)
 {
 	gd->start_addr_sp = gd->start_addr_sp - TOTAL_MALLOC_LEN;
 	debug("Reserving %dk for malloc() at: %08lx\n",
 	      TOTAL_MALLOC_LEN >> 10, gd->start_addr_sp);
+#ifdef CONFIG_SYS_NONCACHED_MEMORY
+	reserve_noncached();
+#endif
+
 	return 0;
 }
 
@@ -562,6 +591,7 @@ static int reserve_stacks(void)
 static int reserve_bloblist(void)
 {
 #ifdef CONFIG_BLOBLIST
+	gd->start_addr_sp &= ~0xf;
 	gd->start_addr_sp -= CONFIG_BLOBLIST_SIZE;
 	gd->new_bloblist = map_sysmem(gd->start_addr_sp, CONFIG_BLOBLIST_SIZE);
 #endif
@@ -669,6 +699,7 @@ static int reloc_bootstage(void)
 		      gd->bootstage, gd->new_bootstage, size);
 		memcpy(gd->new_bootstage, gd->bootstage, size);
 		gd->bootstage = gd->new_bootstage;
+		bootstage_relocate();
 	}
 #endif
 

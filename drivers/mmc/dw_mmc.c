@@ -7,6 +7,7 @@
 
 #include <bouncebuf.h>
 #include <common.h>
+#include <cpu_func.h>
 #include <errno.h>
 #include <malloc.h>
 #include <memalign.h>
@@ -119,11 +120,12 @@ static unsigned int dwmci_get_timeout(struct mmc *mmc, const unsigned int size)
 {
 	unsigned int timeout;
 
-	timeout = size * 8 * 1000;	/* counting in bits and msec */
-	timeout *= 2;			/* wait twice as long */
+	timeout = size * 8;	/* counting in bits */
+	timeout *= 10;		/* wait 10 times as long */
 	timeout /= mmc->clock;
 	timeout /= mmc->bus_width;
 	timeout /= mmc->ddr_mode ? 2 : 1;
+	timeout *= 1000;	/* counting in msec */
 	timeout = (timeout < 1000) ? 1000 : timeout;
 
 	return timeout;

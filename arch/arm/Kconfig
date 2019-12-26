@@ -329,6 +329,12 @@ config SYS_CACHELINE_SIZE
 	default 64 if SYS_CACHE_SHIFT_6
 	default 32 if SYS_CACHE_SHIFT_5
 
+config ARCH_CPU_INIT
+	bool "Enable ARCH_CPU_INIT"
+	help
+	  Some architectures require a call to arch_cpu_init()
+	  Say Y here to enable it
+
 config SYS_ARCH_TIMER
 	bool "ARM Generic Timer support"
 	depends on CPU_V7A || ARM64
@@ -367,7 +373,7 @@ config SYS_THUMB_BUILD
 config SPL_SYS_THUMB_BUILD
 	bool "Build SPL using the Thumb instruction set"
 	default y if SYS_THUMB_BUILD
-	depends on !ARM64
+	depends on !ARM64 && SPL
 	help
 	   Use this flag to build SPL using the Thumb instruction set for
 	   ARM architectures. Thumb instruction set provides better code
@@ -414,7 +420,7 @@ config USE_ARCH_MEMCPY
 config SPL_USE_ARCH_MEMCPY
 	bool "Use an assembly optimized implementation of memcpy for SPL"
 	default y if USE_ARCH_MEMCPY
-	depends on !ARM64
+	depends on !ARM64 && SPL
 	help
 	  Enable the generation of an optimized version of memcpy.
 	  Such implementation may be faster under some conditions
@@ -423,7 +429,7 @@ config SPL_USE_ARCH_MEMCPY
 config TPL_USE_ARCH_MEMCPY
 	bool "Use an assembly optimized implementation of memcpy for TPL"
 	default y if USE_ARCH_MEMCPY
-	depends on !ARM64
+	depends on !ARM64 && TPL
 	help
 	  Enable the generation of an optimized version of memcpy.
 	  Such implementation may be faster under some conditions
@@ -441,7 +447,7 @@ config USE_ARCH_MEMSET
 config SPL_USE_ARCH_MEMSET
 	bool "Use an assembly optimized implementation of memset for SPL"
 	default y if USE_ARCH_MEMSET
-	depends on !ARM64
+	depends on !ARM64 && SPL
 	help
 	  Enable the generation of an optimized version of memset.
 	  Such implementation may be faster under some conditions
@@ -450,15 +456,32 @@ config SPL_USE_ARCH_MEMSET
 config TPL_USE_ARCH_MEMSET
 	bool "Use an assembly optimized implementation of memset for TPL"
 	default y if USE_ARCH_MEMSET
-	depends on !ARM64
+	depends on !ARM64 && TPL
 	help
 	  Enable the generation of an optimized version of memset.
 	  Such implementation may be faster under some conditions
 	  but may increase the binary size.
 
+config SET_STACK_SIZE
+	bool "Enable an option to set max stack size that can be used"
+	default y if ARCH_VERSAL || ARCH_ZYNQMP
+	help
+	  This will enable an option to set max stack size that can be
+	  used by u-boot.
+
+config STACK_SIZE
+	hex "Define max stack size that can be used by u-boot"
+	depends on SET_STACK_SIZE
+	default 0x4000000 if ARCH_VERSAL || ARCH_ZYNQMP
+	help
+	  Defines Max stack size that can be used by u-boot so that the
+	  initrd_high will be calculated as base stack pointer minus this
+	  stack size.
+
 config ARM64_SUPPORT_AARCH32
 	bool "ARM64 system support AArch32 execution state"
-	default y if ARM64 && !TARGET_THUNDERX_88XX
+	depends on ARM64
+	default y if !TARGET_THUNDERX_88XX
 	help
 	  This ARM64 system supports AArch32 execution state.
 
@@ -765,6 +788,7 @@ config ARCH_IMX8
 	select ARM64
 	select DM
 	select OF_CONTROL
+	select ENABLE_ARM_SOC_BOOT0_HOOK
 
 config ARCH_IMX8M
 	bool "NXP i.MX8M platform"
@@ -805,7 +829,7 @@ config ARCH_MX7
 	select ARCH_MISC_INIT
 	select BOARD_EARLY_INIT_F
 	select CPU_V7A
-	select SYS_FSL_HAS_SEC if SECURE_BOOT
+	select SYS_FSL_HAS_SEC if IMX_HAB
 	select SYS_FSL_SEC_COMPAT_4
 	select SYS_FSL_SEC_LE
 	imply MXC_GPIO
@@ -813,7 +837,7 @@ config ARCH_MX7
 config ARCH_MX6
 	bool "Freescale MX6"
 	select CPU_V7A
-	select SYS_FSL_HAS_SEC if SECURE_BOOT
+	select SYS_FSL_HAS_SEC if IMX_HAB
 	select SYS_FSL_SEC_COMPAT_4
 	select SYS_FSL_SEC_LE
 	select SYS_THUMB_BUILD if SPL
@@ -947,10 +971,10 @@ config ARCH_SUNXI
 	select USB if DISTRO_DEFAULTS
 	select USB_KEYBOARD if DISTRO_DEFAULTS
 	select USB_STORAGE if DISTRO_DEFAULTS
-	select USE_TINY_PRINTF
+	select SPL_USE_TINY_PRINTF
 	imply CMD_DM
 	imply CMD_GPT
-	imply CMD_UBI if NAND
+	imply CMD_UBI if MTD_RAW_NAND
 	imply DISTRO_DEFAULTS
 	imply FAT_WRITE
 	imply FIT
@@ -973,17 +997,17 @@ config ARCH_VERSAL
 	select DM_MMC if MMC
 	select DM_SERIAL
 	select OF_CONTROL
+	imply BOARD_LATE_INIT
 
 config ARCH_VF610
 	bool "Freescale Vybrid"
 	select CPU_V7A
 	select SYS_FSL_ERRATUM_ESDHC111
 	imply CMD_MTDPARTS
-	imply NAND
+	imply MTD_RAW_NAND
 
 config ARCH_ZYNQ
 	bool "Xilinx Zynq based platform"
-	select BOARD_EARLY_INIT_F if WDT
 	select CLK
 	select CLK_ZYNQ
 	select CPU_V7A
@@ -1027,16 +1051,21 @@ config ARCH_ZYNQMP
 	select CLK
 	select DM
 	select DM_ETH if NET
+	select DM_MAILBOX
 	select DM_MMC if MMC
 	select DM_SERIAL
 	select DM_SPI if SPI
 	select DM_SPI_FLASH if DM_SPI
 	select DM_USB if USB
+	select FIRMWARE
 	select OF_CONTROL
 	select SPL_BOARD_INIT if SPL
 	select SPL_CLK if SPL
+	select SPL_DM_MAILBOX if SPL
+	select SPL_FIRMWARE if SPL
 	select SPL_SEPARATE_BSS if SPL
 	select SUPPORT_SPL
+	select ZYNQMP_IPI
 	imply BOARD_LATE_INIT
 	imply CMD_DM
 	imply FAT_WRITE
@@ -1058,16 +1087,6 @@ config TARGET_VEXPRESS64_BASE_FVP
 	select ARM64
 	select PL01X_SERIAL
 	select SEMIHOSTING
-
-config TARGET_VEXPRESS64_BASE_FVP_DRAM
-	bool "Support Versatile Express ARMv8a FVP BASE model booting from DRAM"
-	select ARM64
-	select PL01X_SERIAL
-	help
-	  This target is derived from TARGET_VEXPRESS64_BASE_FVP and over-rides
-	  the default config to allow the user to load the images directly into
-	  DRAM using model parameters rather than by using semi-hosting to load
-	  the files from the host filesystem.
 
 config TARGET_VEXPRESS64_JUNO
 	bool "Support Versatile Express Juno Development Platform"
@@ -1093,6 +1112,7 @@ config TARGET_LS2080A_SIMU
 	select ARCH_MISC_INIT
 	select ARM64
 	select ARMV8_MULTIENTRY
+	select BOARD_LATE_INIT
 	help
 	  Support for Freescale LS2080A_SIMU platform
 	  The LS2080A Development System (QDS) is a pre silicon
@@ -1306,6 +1326,8 @@ config TARGET_LS1028AQDS
 	select ARM64
 	select ARMV8_MULTIENTRY
 	select ARCH_SUPPORT_TFABOOT
+	select BOARD_LATE_INIT
+	select ARCH_MISC_INIT
 	help
 	  Support for Freescale LS1028AQDS platform
 	  The LS1028A Development System (QDS) is a high-performance
@@ -1479,9 +1501,6 @@ config TARGET_LS1046AFRWY
 	  The LS1046A Freeway Board (FRWY) is a high-performance
 	  development platform that supports the QorIQ LS1046A
 	  Layerscape Architecture processor.
-config TARGET_H2200
-	bool "Support h2200"
-	select CPU_PXA
 
 config TARGET_COLIBRI_PXA270
 	bool "Support colibri_pxa270"
@@ -1557,6 +1576,7 @@ config ARCH_STM32MP
 	imply SPL_SYSRESET
 	imply CMD_DM
 	imply CMD_POWEROFF
+	imply OF_LIBFDT_OVERLAY
 	imply ENV_VARS_UBOOT_RUNTIME_CONFIG
 	imply USE_PREBOOT
 	help
@@ -1584,7 +1604,6 @@ config ARCH_ROCKCHIP
 	select OF_CONTROL
 	select SPI
 	select SPL_DM if SPL
-	select SPL_SYS_MALLOC_SIMPLE if SPL
 	select SYS_MALLOC_F
 	select SYS_THUMB_BUILD if !ARM64
 	imply ADC
@@ -1594,6 +1613,7 @@ config ARCH_ROCKCHIP
 	imply FAT_WRITE
 	imply SARADC_ROCKCHIP
 	imply SPL_SYSRESET
+	imply SPL_SYS_MALLOC_SIMPLE
 	imply SYS_NS16550
 	imply TPL_SYSRESET
 	imply USB_FUNCTION_FASTBOOT
@@ -1610,6 +1630,13 @@ config ARCH_ASPEED
 	select DM
 	select OF_CONTROL
 	imply CMD_DM
+
+config TARGET_DURIAN
+	bool "Support Phytium Durian Platform"
+	select ARM64
+	help
+	  Support for durian platform.
+	  It has 2GB Sdram, uart and pcie.
 
 endchoice
 
@@ -1788,7 +1815,6 @@ source "board/freescale/mx35pdk/Kconfig"
 source "board/freescale/s32v234evb/Kconfig"
 source "board/grinn/chiliboard/Kconfig"
 source "board/gumstix/pepper/Kconfig"
-source "board/h2200/Kconfig"
 source "board/hisilicon/hikey/Kconfig"
 source "board/hisilicon/hikey960/Kconfig"
 source "board/hisilicon/poplar/Kconfig"
@@ -1811,6 +1837,7 @@ source "board/woodburn/Kconfig"
 source "board/xilinx/Kconfig"
 source "board/xilinx/zynq/Kconfig"
 source "board/xilinx/zynqmp/Kconfig"
+source "board/phytium/durian/Kconfig"
 
 source "arch/arm/Kconfig.debug"
 

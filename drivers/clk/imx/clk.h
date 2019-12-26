@@ -20,6 +20,31 @@ enum imx_pllv3_type {
 	IMX_PLLV3_DDR_IMX7,
 };
 
+enum imx_pll14xx_type {
+	PLL_1416X,
+	PLL_1443X,
+};
+
+/* NOTE: Rate table should be kept sorted in descending order. */
+struct imx_pll14xx_rate_table {
+	unsigned int rate;
+	unsigned int pdiv;
+	unsigned int mdiv;
+	unsigned int sdiv;
+	unsigned int kdiv;
+};
+
+struct imx_pll14xx_clk {
+	enum imx_pll14xx_type type;
+	const struct imx_pll14xx_rate_table *rate_table;
+	int rate_count;
+	int flags;
+};
+
+struct clk *imx_clk_pll14xx(const char *name, const char *parent_name,
+			    void __iomem *base,
+			    const struct imx_pll14xx_clk *pll_clk);
+
 struct clk *clk_register_gate2(struct device *dev, const char *name,
 		const char *parent_name, unsigned long flags,
 		void __iomem *reg, u8 bit_idx, u8 cgr_val,
@@ -67,6 +92,14 @@ static inline struct clk *imx_clk_divider(const char *name, const char *parent,
 			reg, shift, width, 0);
 }
 
+static inline struct clk *
+imx_clk_busy_divider(const char *name, const char *parent, void __iomem *reg,
+		     u8 shift, u8 width, void __iomem *busy_reg, u8 busy_shift)
+{
+	return clk_register_divider(NULL, name, parent, CLK_SET_RATE_PARENT,
+			reg, shift, width, 0);
+}
+
 static inline struct clk *imx_clk_divider2(const char *name, const char *parent,
 		void __iomem *reg, u8 shift, u8 width)
 {
@@ -95,6 +128,16 @@ static inline struct clk *imx_clk_mux_flags(const char *name,
 static inline struct clk *imx_clk_mux(const char *name, void __iomem *reg,
 			u8 shift, u8 width, const char * const *parents,
 			int num_parents)
+{
+	return clk_register_mux(NULL, name, parents, num_parents,
+			CLK_SET_RATE_NO_REPARENT, reg, shift,
+			width, 0);
+}
+
+static inline struct clk *
+imx_clk_busy_mux(const char *name, void __iomem *reg, u8 shift, u8 width,
+		 void __iomem *busy_reg, u8 busy_shift,
+		 const char * const *parents, int num_parents)
 {
 	return clk_register_mux(NULL, name, parents, num_parents,
 			CLK_SET_RATE_NO_REPARENT, reg, shift,
