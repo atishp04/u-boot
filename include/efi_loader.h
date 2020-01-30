@@ -261,7 +261,7 @@ struct efi_loaded_image_obj {
 	u16 **exit_data;
 	struct jmp_buf_data exit_jmp;
 	EFIAPI efi_status_t (*entry)(efi_handle_t image_handle,
-				     struct efi_system_table *st);
+				     struct efi_system_table *st, u32 hartid);
 	u16 image_type;
 };
 

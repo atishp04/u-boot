@@ -2930,7 +2930,7 @@ efi_status_t EFIAPI efi_start_image(efi_handle_t image_handle,
 	current_image = image_handle;
 	image_obj->header.type = EFI_OBJECT_TYPE_STARTED_IMAGE;
 	EFI_PRINT("Jumping into 0x%p\n", image_obj->entry);
-	ret = EFI_CALL(image_obj->entry(image_handle, &systab));
+	ret = EFI_CALL(image_obj->entry(image_handle, &systab, gd->arch.boot_hart));
 
 	/*
 	 * Usually UEFI applications call Exit() instead of returning.
