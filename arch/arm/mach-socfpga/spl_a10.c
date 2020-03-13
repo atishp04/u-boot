@@ -5,6 +5,7 @@
 
 #include <common.h>
 #include <cpu_func.h>
+#include <hang.h>
 #include <asm/io.h>
 #include <asm/pl310.h>
 #include <asm/u-boot.h>
@@ -32,12 +33,9 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-static const struct socfpga_system_manager *sysmgr_regs =
-	(struct socfpga_system_manager *)SOCFPGA_SYSMGR_ADDRESS;
-
 u32 spl_boot_device(void)
 {
-	const u32 bsel = readl(&sysmgr_regs->bootinfo);
+	const u32 bsel = readl(socfpga_get_sysmgr_addr() + SYSMGR_A10_BOOTINFO);
 
 	switch (SYSMGR_GET_BOOTINFO_BSEL(bsel)) {
 	case 0x1:	/* FPGA (HPS2FPGA Bridge) */
@@ -107,6 +105,11 @@ void spl_board_init(void)
 
 void board_init_f(ulong dummy)
 {
+	if (spl_early_init())
+		hang();
+
+	socfpga_get_managers_addr();
+
 	dcache_disable();
 
 	socfpga_init_security_policies();
@@ -116,8 +119,6 @@ void board_init_f(ulong dummy)
 	/* Assert reset to all except L4WD0 and L4TIMER0 */
 	socfpga_per_reset_all();
 	socfpga_watchdog_disable();
-
-	spl_early_init();
 
 	/* Configure the clock based on handoff */
 	cm_basic_init(gd->fdt_blob);

@@ -7,6 +7,7 @@
  */
 
 #include <common.h>
+#include <cpu_func.h>
 #include <spl.h>
 #include "common.h"
 #include <dm.h>
@@ -174,8 +175,8 @@ int fdt_disable_node(void *blob, char *node_path)
 
 	offs = fdt_path_offset(blob, node_path);
 	if (offs < 0) {
-		debug("Node %s not found.\n", node_path);
-		return 0;
+		printf("Node %s not found.\n", node_path);
+		return offs;
 	}
 	ret = fdt_setprop_string(blob, offs, "status", "disabled");
 	if (ret < 0) {
@@ -217,7 +218,7 @@ int print_cpuinfo(void)
 		name = "Unknown Silicon";
 	};
 
-	printf("%s PG ", name);
+	printf("%s SR ", name);
 	switch (rev) {
 	case REV_PG1_0:
 		name = "1.0";
@@ -244,3 +245,58 @@ void board_prep_linux(bootm_headers_t *images)
 				       CONFIG_SYS_CACHELINE_SIZE));
 }
 #endif
+
+#ifdef CONFIG_CPU_V7R
+void disable_linefill_optimization(void)
+{
+	u32 actlr;
+
+	/*
+	 * On K3 devices there are 2 conditions where R5F can deadlock:
+	 * 1.When software is performing series of store operations to
+	 *   cacheable write back/write allocate memory region and later
+	 *   on software execute barrier operation (DSB or DMB). R5F may
+	 *   hang at the barrier instruction.
+	 * 2.When software is performing a mix of load and store operations
+	 *   within a tight loop and store operations are all writing to
+	 *   cacheable write back/write allocates memory regions, R5F may
+	 *   hang at one of the load instruction.
+	 *
+	 * To avoid the above two conditions disable linefill optimization
+	 * inside Cortex R5F.
+	 */
+	asm("mrc p15, 0, %0, c1, c0, 1" : "=r" (actlr));
+	actlr |= (1 << 13); /* Set DLFO bit  */
+	asm("mcr p15, 0, %0, c1, c0, 1" : : "r" (actlr));
+}
+#endif
+
+void remove_fwl_configs(struct fwl_data *fwl_data, size_t fwl_data_size)
+{
+	struct ti_sci_msg_fwl_region region;
+	struct ti_sci_fwl_ops *fwl_ops;
+	struct ti_sci_handle *ti_sci;
+	size_t i, j;
+
+	ti_sci = get_ti_sci_handle();
+	fwl_ops = &ti_sci->ops.fwl_ops;
+	for (i = 0; i < fwl_data_size; i++) {
+		for (j = 0; j <  fwl_data[i].regions; j++) {
+			region.fwl_id = fwl_data[i].fwl_id;
+			region.region = j;
+			region.n_permission_regs = 3;
+
+			fwl_ops->get_fwl_region(ti_sci, &region);
+
+			if (region.control != 0) {
+				pr_debug("Attempting to disable firewall %5d (%25s)\n",
+					 region.fwl_id, fwl_data[i].name);
+				region.control = 0;
+
+				if (fwl_ops->set_fwl_region(ti_sci, &region))
+					pr_err("Could not disable firewall %5d (%25s)\n",
+					       region.fwl_id, fwl_data[i].name);
+			}
+		}
+	}
+}
