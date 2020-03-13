@@ -1,0 +1,47 @@
+This series adds few DT related fixes required for Linux EFI stub to work
+on RISC-V.
+
+Patch 1 adds the boot hartid property under /chosen node. The related
+discussion can be found here.
+
+https://patchwork.ozlabs.org/patch/1233664/
+https://lists.denx.de/pipermail/u-boot/2020-March/402085.html
+
+Patch 2 fixes a generic issue in fdtdec related to reserved memory node.
+
+Patch 3,4,5 provide one of the option to update reserved-memory node for next
+stage. It depends on master OpenSBI branch.
+
+The other options are SBI extension and trap/emulate on PMP csr access.
+The detaild discussion can be found here.
+https://github.com/riscv/riscv-sbi-doc/pull/37
+
+Patch 1 & 2 can be applied independently from 3 and 4. I want to keep all
+the patches together to provide a holistic view of changes required for
+RISC-V UEFI.
+
+Changes from v5->v6:
+1. Fixed typos in commit message and added reviewed-by tags.
+
+Changes from v4->v5:
+1. Added comments for new functions.
+
+Changes from v3->v4:
+1. Dropped generic efi fix patch as it is already merged.
+2. Moved all the fdt fixups to a common file.
+3. Addressed few nit comments.
+
+Changes from v2->v3:
+1. Update the DT meant for OS if it is different from the one used by U-Boot
+2. Use different FDT api to obtain "reg" address & size to honor the cell count.
+
+Changes from v1->v2:
+1. Fix the issue if chosen node is not present.
+
+Changes from previous version:
+1. Renamed the DT node property to "boot-hartid" from "efi-boot-hartid".
+2. Changed the property type to u32 instead of u64 for RV32 compatibility.
+
+To: u-boot@lists.denx.de
+option-subject RISC-V DT related fixes for reserved memory & UEFI
+option-prefix RESEND PATCH v6
