@@ -1,0 +1,17 @@
+This series has few small assorted fixes related to reserved memory support
+in RISC-V.
+
+The series is rebased on top of the following series
+http://patchwork.ozlabs.org/project/uboot/patch/1591767391-2669-2-git-send-email-bmeng.cn@gmail.com/
+
+Changes form v2->v3:
+1. Dropped bootefi patch as it is already merged.
+2. Fixed minor typos.
+
+Changes from v1->v2:
+1. Rebased on top of the Bin's series. Dropped the fix generic fdtdec code.
+2. Added bootefi fix.
+
+To: u-boot@lists.denx.de
+option-subject Assorted fixes related to reserved memory
+option-prefix PATCH v3
