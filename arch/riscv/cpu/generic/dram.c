@@ -12,7 +12,23 @@ DECLARE_GLOBAL_DATA_PTR;
 
 int dram_init(void)
 {
-	return fdtdec_setup_mem_size_base();
+	int rc;
+#ifdef CONFIG_32BIT
+	unsigned long usable_mem_end = 0;
+	unsigned long dram_end;
+#endif
+	rc = fdtdec_setup_mem_size_base();
+	if (rc < 0)
+		return rc;
+
+#ifdef CONFIG_32BIT
+	dram_end = gd->ram_base + gd->ram_size - 1;
+	usable_mem_end = gd->ram_base + SZ_1G;
+	if (usable_mem_end < dram_end)
+		gd->ram_size = gd->ram_size - (dram_end - usable_mem_end - 1);
+#endif
+
+	return 0;
 }
 
 int dram_init_banksize(void)
