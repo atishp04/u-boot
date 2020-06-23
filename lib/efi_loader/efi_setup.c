@@ -140,7 +140,7 @@ efi_status_t efi_init_obj_list(void)
 	if (ret != EFI_SUCCESS)
 		goto out;
 
-#ifdef CONFIG_PARTITIONS
+#if defined (CONFIG_PARTITIONS) && (!CONFIG_RISCV)
 	ret = efi_disk_register();
 	if (ret != EFI_SUCCESS)
 		goto out;
