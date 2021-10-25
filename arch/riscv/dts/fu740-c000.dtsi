@@ -141,6 +141,17 @@
 		#size-cells = <2>;
 		compatible = "sifive,fu740-c000", "sifive,fu740", "simple-bus";
 		ranges;
+		pmu {
+			compatible = "riscv,pmu";
+			riscv,raw-event-to-mhpmcounters = <0x00000000 0x200 0x18
+							 0x00000000 0x400 0x18
+							 0x00000000 0x800 0x18>;
+			riscv,event-to-mhpmcounters = <0x05 0x06 0x18
+						     0x10009 0x10009 0x18>;
+			riscv,event-to-mhpmevent = <0x05 0x00000000 0x4000
+						  0x06 0x00000000 0x4001
+						  0x10008 0x00000000 0x102>;
+		};
 		plic0: interrupt-controller@c000000 {
 			#interrupt-cells = <1>;
 			compatible = "sifive,plic-1.0.0";
